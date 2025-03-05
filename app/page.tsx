@@ -1,7 +1,7 @@
 "use client";
 
-import { columns } from "../components/tables/users/columns";
 import { DataTable } from "../components/tables/data-table";
+import { columns } from "../components/tables/users/columns";
 
 export default function UsersPage() {
   return (
