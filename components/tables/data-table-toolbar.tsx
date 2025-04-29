@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Table } from "@tanstack/react-table";
@@ -19,8 +20,21 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("search") || "");
-  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "");
-  const [roleFilter, setRoleFilter] = useState<string>(searchParams.get("role") || "");
+  const statusColumn = table.getColumn("status");
+  const roleColumn = table.getColumn("role");
+
+  // Initialize filters from URL
+  useEffect(() => {
+    const statusParam = searchParams.get("status");
+    const roleParam = searchParams.get("role");
+    
+    if (statusColumn && statusParam) {
+      statusColumn.setFilterValue([statusParam]);
+    }
+    if (roleColumn && roleParam) {
+      roleColumn.setFilterValue([roleParam]);
+    }
+  }, []);
 
   // Function to update the URL with new query parameters
   const updateURLParams = (params: URLSearchParams) => {
@@ -29,24 +43,23 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
 
   // Update the URL whenever any of the filters change
   useEffect(() => {
-    // Clone existing search parameters to preserve the old ones
     const params = new URLSearchParams(searchParams.toString());
+    const statusFilter = statusColumn?.getFilterValue() as string[] | undefined;
+    const roleFilter = roleColumn?.getFilterValue() as string[] | undefined;
 
-    // Set the new search term and filter values
     if (searchTerm) params.set("search", searchTerm);
-    else params.delete("search"); // Remove search parameter if it's empty
+    else params.delete("search");
 
-    if (statusFilter) params.set("status", statusFilter);
-    else params.delete("status"); // Remove status filter if it's empty
+    if (statusFilter?.[0]) params.set("status", statusFilter[0]);
+    else params.delete("status");
 
-    if (roleFilter) params.set("role", roleFilter);
-    else params.delete("role"); // Remove role filter if it's empty
+    if (roleFilter?.[0]) params.set("role", roleFilter[0]);
+    else params.delete("role");
 
-    // Update the URL without resetting the other query parameters
     updateURLParams(params);
-  }, [searchTerm, statusFilter, roleFilter, searchParams, router]);
+  }, [searchTerm, statusColumn?.getFilterValue(), roleColumn?.getFilterValue(), searchParams, router]);
 
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0 || searchTerm;
 
   return (
     <div className="flex items-center justify-between">
@@ -57,41 +70,35 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
           onChange={(event) => setSearchTerm(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("status") && (
+        {statusColumn && (
           <DataTableFacetedFilter
-            column={table.getColumn("status")}
+            column={statusColumn}
             title="Status"
             options={[
               { label: "Active", value: "active" },
               { label: "Inactive", value: "inactive" },
             ]}
-            value={statusFilter}
-               // @ts-ignore
-            onChange={(value) => setStatusFilter(value)}
           />
         )}
-        {table.getColumn("role") && (
+        {roleColumn && (
           <DataTableFacetedFilter
-            column={table.getColumn("role")}
+            column={roleColumn}
             title="Role"
             options={[
               { label: "Admin", value: "admin" },
               { label: "User", value: "user" },
               { label: "Manager", value: "manager" },
             ]}
-            value={roleFilter}
-            // @ts-ignore
-            onChange={(value) => setRoleFilter(value)}
           />
         )}
         {isFiltered && (
           <Button
             variant="ghost"
             onClick={() => {
-              setSearchTerm(""); // Reset search term
-              setStatusFilter(""); // Reset status filter
-              setRoleFilter(""); // Reset role filter
-              table.resetColumnFilters(); // Reset column filters
+              setSearchTerm("");
+              statusColumn?.setFilterValue(undefined);
+              roleColumn?.setFilterValue(undefined);
+              table.resetColumnFilters();
             }}
             className="h-8 px-2 lg:px-3"
           >

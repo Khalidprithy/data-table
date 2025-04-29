@@ -28,10 +28,18 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 
@@ -51,20 +59,35 @@ interface DataTableProps<TData, TValue> {
 }
 
 function SortableRow({ row, children }: { row: any; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: row.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: row.id });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  // Attach drag listeners only to the first cell (grab handle)
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      data-state={row.getIsSelected() && "selected"}
-      {...attributes}
-      {...listeners}
-    >
-      {children}
+    <TableRow ref={setNodeRef} style={style} data-state={row.getIsSelected() && "selected"}>
+      {React.Children.map(children, (child, index) => {
+        if (index === 0 && React.isValidElement(child)) {
+          return React.cloneElement(child, {
+            ...child.props,
+            children: (
+              <div {...attributes} {...listeners}>
+                {child.props.children}
+              </div>
+            ),
+          });
+        }
+        return child;
+      })}
     </TableRow>
   );
 }
@@ -88,9 +111,7 @@ export function DataTable<TData, TValue>({
   const [globalFilter, setGlobalFilter] = useState("");
 
   const totalRows = paginationData?.total || 0;
-  const pageCount = paginationData?.pageCount || 0;
 
-  // Ensure pagination state gets updated when the component receives new data or pagination state
   useEffect(() => {
     if (paginationData) {
       setPagination({
@@ -99,7 +120,7 @@ export function DataTable<TData, TValue>({
       });
       setData(initialData || []);
     }
-  }, [paginationData]);
+  }, [paginationData, initialData]);
 
   const table = useReactTable({
     data,
@@ -117,9 +138,7 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: (newState) => {
-      setPagination(newState); // Properly update pagination when it changes
-    },
+    onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -143,7 +162,9 @@ export function DataTable<TData, TValue>({
                 {enableRowOrdering && <TableHead className="w-4" />}
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -173,11 +194,13 @@ export function DataTable<TData, TValue>({
                 <SortableContext items={currentRows.map((row) => row.id)} strategy={verticalListSortingStrategy}>
                   {currentRows.map((row) => (
                     <SortableRow key={row.id} row={row}>
-                      <TableCell className="w-4 text-gray-400 cursor-grab">
-                        <GripVertical className="h-4 w-4" />
+                      <TableCell className="w-4 text-gray-400">
+                        <GripVertical className="h-4 w-4 cursor-grab" />
                       </TableCell>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
                       ))}
                     </SortableRow>
                   ))}
@@ -187,7 +210,9 @@ export function DataTable<TData, TValue>({
               currentRows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))

@@ -21,14 +21,12 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>
   title?: string
   value?: TValue; 
-  onChange: (value: TValue) => void;
   options: {
     label: string
     value: string
     icon?: React.ComponentType<{ className?: string }>
   }[]
 }
-
 
 
 export function DataTableFacetedFilter<TData, TValue>({
