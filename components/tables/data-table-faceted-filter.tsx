@@ -1,7 +1,6 @@
-import type * as React from "react"
 import type { Column } from "@tanstack/react-table"
+import type * as React from "react"
 
-import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,17 +14,22 @@ import {
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>
   title?: string
+  value?: TValue; 
+  onChange: (value: TValue) => void;
   options: {
     label: string
     value: string
     icon?: React.ComponentType<{ className?: string }>
   }[]
 }
+
+
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,

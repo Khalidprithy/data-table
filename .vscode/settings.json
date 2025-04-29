@@ -2,7 +2,7 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "prettier.jsxSingleQuote": true,
-  "prettier.printWidth": 120,
+  "prettier.printWidth": 140,
   "prettier.tabWidth": 2,
   "prettier.useTabs": false,
   "prettier.endOfLine": "lf",
@@ -12,10 +12,6 @@
   "prettier.semi": true,
   "prettier.trailingComma": "none",
   "prettier.htmlWhitespaceSensitivity": "ignore",
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit"
-  },
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#12488c",
     "activityBar.background": "#12488c",
@@ -35,5 +31,8 @@
     "titleBar.inactiveBackground": "#0c315f99",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#0C315F"
+  "peacock.color": "#0C315F",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
