@@ -1,4 +1,4 @@
-import UserList from "./users/UserList";
+import UserList from "../components/users/UserList";
 
 export default async function Page({
   searchParams,
