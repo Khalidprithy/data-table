@@ -1,3 +1,5 @@
+"use client"
+
 import type { Column } from "@tanstack/react-table"
 import type * as React from "react"
 
@@ -20,14 +22,13 @@ import { Check, ChevronsUpDown } from "lucide-react"
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>
   title?: string
-  value?: TValue; 
+  value?: TValue
   options: {
     label: string
     value: string
     icon?: React.ComponentType<{ className?: string }>
   }[]
 }
-
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
@@ -127,4 +128,3 @@ export function DataTableFacetedFilter<TData, TValue>({
     </Popover>
   )
 }
-

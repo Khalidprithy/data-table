@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { Table } from "@tanstack/react-table";
@@ -15,11 +14,15 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
 
-export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({
+  table,
+}: DataTableToolbarProps<TData>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("search") || "");
+  const [searchTerm, setSearchTerm] = useState<string>(
+    searchParams.get("search") || ""
+  );
   const statusColumn = table.getColumn("status");
   const roleColumn = table.getColumn("role");
 
@@ -27,7 +30,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
   useEffect(() => {
     const statusParam = searchParams.get("status");
     const roleParam = searchParams.get("role");
-    
+
     if (statusColumn && statusParam) {
       statusColumn.setFilterValue([statusParam]);
     }
@@ -57,7 +60,13 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
     else params.delete("role");
 
     updateURLParams(params);
-  }, [searchTerm, statusColumn?.getFilterValue(), roleColumn?.getFilterValue(), searchParams, router]);
+  }, [
+    searchTerm,
+    statusColumn?.getFilterValue(),
+    roleColumn?.getFilterValue(),
+    searchParams,
+    router,
+  ]);
 
   const isFiltered = table.getState().columnFilters.length > 0 || searchTerm;
 

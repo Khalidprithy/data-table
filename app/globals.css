@@ -12,6 +12,32 @@ body {
   }
 }
 
+/* Add styles for drag and drop */
+[data-state="dragging"] {
+  opacity: 0.5;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Improve drag handle visibility */
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grab:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.cursor-grab:active {
+  cursor: grabbing;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

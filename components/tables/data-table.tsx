@@ -16,9 +16,12 @@ import {
 import {
   closestCenter,
   DndContext,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 
 import {
@@ -39,9 +42,10 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { Button } from "../ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -58,39 +62,87 @@ interface DataTableProps<TData, TValue> {
   dragEnd?: (newData: TData[]) => void;
 }
 
-function SortableRow({ row, children }: { row: any; children: React.ReactNode }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: row.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  // Attach drag listeners only to the first cell (grab handle)
+// Drag handle component
+function DragHandle({ listeners, attributes }: any) {
   return (
-    <TableRow ref={setNodeRef} style={style} data-state={row.getIsSelected() && "selected"}>
-      {React.Children.map(children, (child, index) => {
-        if (index === 0 && React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            ...child.props,
-            children: (
-              <div {...attributes} {...listeners}>
-                {child.props.children}
-              </div>
-            ),
-          });
-        }
-        return child;
-      })}
-    </TableRow>
+    <div
+      className="flex items-center bg-transparent justify-center w-full h-full cursor-grab"
+      {...listeners}
+      {...attributes}
+    >
+      <Button variant="outline" className="h-5 w-5 p-1">
+        <GripVertical className="h-4 w-4" aria-hidden="true" />
+      </Button>
+    </div>
   );
 }
+
+// Component for a sortable row
+const SortableRow = React.memo(function SortableRow({
+  row,
+  isDragging,
+}: {
+  row: any;
+  isDragging?: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: row.id });
+
+  const style = useMemo(
+    () => ({
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+      position: "relative" as const,
+      zIndex: isDragging ? 1 : 0,
+    }),
+    [transform, transition, isDragging]
+  );
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      data-state={
+        (row.getIsSelected() && "selected") ||
+        (isDragging && "dragging") ||
+        undefined
+      }
+      className={isDragging ? "bg-muted" : ""}
+    >
+      {row.getVisibleCells().map((cell: any) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+      <TableCell className="w-4 text-gray-400 p-0">
+        <DragHandle listeners={listeners} attributes={attributes} />
+      </TableCell>
+    </TableRow>
+  );
+});
+
+// Component for the drag overlay (what you see while dragging)
+const DragOverlayRow = React.memo(function DragOverlayRow({
+  row,
+}: {
+  row: any;
+}) {
+  return (
+    <TableRow className="bg-background border shadow-md">
+      {row.getVisibleCells().map((cell: any) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+      <TableCell className="w-4">
+        <Button variant="outline" className="h-5 w-5 p-1">
+          <GripVertical className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+});
 
 export function DataTable<TData, TValue>({
   columns,
@@ -99,28 +151,48 @@ export function DataTable<TData, TValue>({
   enableRowOrdering = false,
   dragEnd,
 }: DataTableProps<TData, TValue>) {
+  const dataRef = React.useRef(initialData);
+  const paginationDataRef = React.useRef(paginationData);
+
   const [data, setData] = useState<TData[]>(initialData);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
-    pageIndex: paginationData?.page || 0,
+    pageIndex: paginationData?.page ? paginationData.page - 1 : 0,
     pageSize: paginationData?.pageSize || 10,
   });
   const [globalFilter, setGlobalFilter] = useState("");
-
-  const totalRows = paginationData?.total || 0;
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (paginationData) {
-      setPagination({
-        pageIndex: paginationData.page || 0,
-        pageSize: paginationData.pageSize || 10,
-      });
-      setData(initialData || []);
+    if (
+      JSON.stringify(initialData) !== JSON.stringify(dataRef.current) ||
+      JSON.stringify(paginationData) !==
+        JSON.stringify(paginationDataRef.current)
+    ) {
+      if (initialData !== dataRef.current) {
+        setData(initialData);
+        dataRef.current = initialData;
+      }
+
+      if (paginationData !== paginationDataRef.current) {
+        setPagination({
+          pageIndex: paginationData?.page ? paginationData.page - 1 : 0,
+          pageSize: paginationData?.pageSize || 10,
+        });
+        paginationDataRef.current = paginationData;
+      }
     }
-  }, [paginationData, initialData]);
+  }, [initialData, paginationData]);
+
+  const totalRows = paginationData?.total || 0;
+  const pageCount = useMemo(
+    () =>
+      paginationData?.pageCount || Math.ceil(totalRows / pagination.pageSize),
+    [paginationData, totalRows, pagination.pageSize]
+  );
 
   const table = useReactTable({
     data,
@@ -144,83 +216,178 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: false,
-    pageCount: Math.ceil(totalRows / pagination.pageSize),
+    manualPagination: true,
+    pageCount: pageCount,
   });
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
+  );
+
   const currentRows = table.getRowModel().rows;
+
+  const activeRow = useMemo(() => {
+    if (!activeId) return null;
+    return currentRows.find((row) => row.id === activeId) || null;
+  }, [activeId, currentRows]);
+
+  const rowIds = useMemo(() => currentRows.map((row) => row.id), [currentRows]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      setActiveId(null);
+
+      if (!over || active.id === over.id) {
+        return;
+      }
+
+      const oldIndex = currentRows.findIndex((row) => row.id === active.id);
+      const newIndex = currentRows.findIndex((row) => row.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newData = arrayMove([...data], oldIndex, newIndex);
+        setData(newData);
+
+        if (dragEnd) {
+          dragEnd(newData);
+        }
+      }
+    },
+    [currentRows, data, dragEnd]
+  );
+
+  const tableHeader = useMemo(
+    () => (
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <TableHead key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+              </TableHead>
+            ))}
+            {enableRowOrdering && <TableHead className="w-4" />}
+          </TableRow>
+        ))}
+      </TableHeader>
+    ),
+    [table.getHeaderGroups(), enableRowOrdering]
+  );
+
+  const emptyTableBody = useMemo(
+    () => (
+      <TableRow>
+        <TableCell
+          colSpan={columns.length + (enableRowOrdering ? 1 : 0)}
+          className="h-24 text-center"
+        >
+          No results.
+        </TableCell>
+      </TableRow>
+    ),
+    [columns.length, enableRowOrdering]
+  );
 
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} />
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {enableRowOrdering && <TableHead className="w-4" />}
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {currentRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length + (enableRowOrdering ? 1 : 0)} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            ) : enableRowOrdering ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={({ active, over }) => {
-                  if (active.id !== over?.id) {
-                    const oldIndex = currentRows.findIndex((row) => row.id === active.id);
-                    const newIndex = currentRows.findIndex((row) => row.id === over?.id);
-                    const newData = arrayMove(data, oldIndex, newIndex);
-                    setData(newData);
-                    dragEnd?.(newData);
-                  }
-                }}
-              >
-                <SortableContext items={currentRows.map((row) => row.id)} strategy={verticalListSortingStrategy}>
-                  {currentRows.map((row) => (
-                    <SortableRow key={row.id} row={row}>
-                      <TableCell className="w-4 text-gray-400">
-                        <GripVertical className="h-4 w-4 cursor-grab" />
-                      </TableCell>
+        {enableRowOrdering ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="sr-only" id="dnd-description">
+              Drag and drop to reorder rows. Press space or enter to start
+              dragging, and space or enter again to drop.
+            </div>
+            <Table>
+              {tableHeader}
+              <TableBody>
+                {currentRows.length === 0 ? (
+                  emptyTableBody
+                ) : (
+                  <SortableContext
+                    items={rowIds}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {currentRows.map((row) => (
+                      <SortableRow
+                        key={row.id}
+                        row={row}
+                        isDragging={activeId === row.id}
+                      />
+                    ))}
+                  </SortableContext>
+                )}
+              </TableBody>
+            </Table>
+
+            <DragOverlay>
+              {activeRow ? (
+                <div className="table-wrapper">
+                  <table className="w-full">
+                    <tbody>
+                      <DragOverlayRow row={activeRow} />
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        ) : (
+          <Table>
+            {tableHeader}
+            <TableBody>
+              {currentRows.length === 0
+                ? emptyTableBody
+                : currentRows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       ))}
-                    </SortableRow>
+                      {enableRowOrdering && (
+                        <TableCell className="w-4">
+                          <Button variant="outline" className="h-5 w-5 p-1">
+                            <GripVertical
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
                   ))}
-                </SortableContext>
-              </DndContext>
-            ) : (
-              currentRows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
+        )}
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} totalItems={totalRows} />
     </div>
   );
 }
