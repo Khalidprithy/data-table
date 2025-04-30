@@ -12,10 +12,12 @@ import { DataTableViewOptions } from "./data-table-view-options";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  searchableFields?: string[];
 }
 
 export function DataTableToolbar<TData>({
   table,
+  searchableFields
 }: DataTableToolbarProps<TData>) {
   const router = useRouter();
   const searchParams = useSearchParams();

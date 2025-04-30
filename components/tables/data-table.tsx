@@ -50,6 +50,7 @@ import { Button } from "../ui/button";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  searchableFields?: string[];
   paginationData?: {
     total: number;
     pageCount: number;
@@ -147,6 +148,7 @@ const DragOverlayRow = React.memo(function DragOverlayRow({
 export function DataTable<TData, TValue>({
   columns,
   data: initialData,
+  searchableFields = [],
   paginationData,
   enableRowOrdering = false,
   dragEnd,
@@ -305,7 +307,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} searchableFields={searchableFields} />
       <div className="rounded-md border">
         {enableRowOrdering ? (
           <DndContext
