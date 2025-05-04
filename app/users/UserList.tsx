@@ -3,7 +3,7 @@
 import { DataTable } from "@/components/tables/data-table";
 import { columns } from "@/components/tables/users/columns";
 import { useToast } from "@/hooks/use-toast";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export default function UserList({ result }: { result: any }) {
   const { data, total, pageCount, page, pageSize } = result;
@@ -86,6 +86,18 @@ export default function UserList({ result }: { result: any }) {
     [saveReorderedData]
   );
 
+
+  const paginationData = useMemo(
+    () => ({
+       total: total,
+       pageCount: pageCount,
+       page: page,
+       pageSize: pageSize
+    }),
+    [total, pageCount, page, pageSize]
+ )
+
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold tracking-tight mb-6">
@@ -94,12 +106,7 @@ export default function UserList({ result }: { result: any }) {
       <div className="border rounded-lg p-4">
         <DataTable
           columns={columns}
-          paginationData={{
-            total,
-            pageCount,
-            page,
-            pageSize,
-          }}
+          paginationData={paginationData}
           data={userData}
           enableRowOrdering
           dragEnd={handleDragEnd}

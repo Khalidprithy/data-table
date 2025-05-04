@@ -27,6 +27,7 @@ export default async function Page({
     }
 
     const result = await res.json();
+
     return <UserList result={result} />;
   } catch (err) {
     console.error("Fetch failed:", err);
@@ -34,7 +35,7 @@ export default async function Page({
       <UserList
         result={{
           data: [],
-          total: 0,
+          total: 10,
           page: 1,
           pageSize: 10,
           pageCount: 0,
