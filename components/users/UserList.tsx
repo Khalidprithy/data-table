@@ -5,6 +5,7 @@ import { columns } from "@/components/tables/users/columns"
 import { useToast } from "@/hooks/use-toast"
 import { saveUserOrder } from "@/lib/actions/user"
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { Button } from "../ui/button"
 
 export default function UserList({ result }: { result: any }) {
   const { data, total, pageCount, page, pageSize } = result
@@ -77,16 +78,18 @@ export default function UserList({ result }: { result: any }) {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-    }, 1000)
+    }, 2000)
   }, [])
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Users Management</h1>
+        <Button  variant={'default'} size={'sm'} onClick={() => refreshData()}>Refresh</Button>
       </div>
       <div className="border rounded-lg p-4 bg-card">
         <DataTable
+          loading={isLoading || isPending}
           columns={columns}
           paginationData={{
             total,
