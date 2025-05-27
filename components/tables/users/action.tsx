@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +8,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import type { User } from "@/types"
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import type { User } from '@/types';
 export default function UserAction({ user }: { user: User }) {
   return (
     <DropdownMenu>
@@ -22,12 +22,16 @@ export default function UserAction({ user }: { user: User }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)}>Copy user ID</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => navigator.clipboard.writeText(user.id)}
+        >
+          Copy user ID
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>View user</DropdownMenuItem>
         <DropdownMenuItem>Edit user</DropdownMenuItem>
         <DropdownMenuItem>Delete user</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { DataTable } from "@/components/tables/data-table";
-import { columns } from "@/components/tables/users/columns";
-import { useToast } from "@/hooks/use-toast";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DataTable } from '@/components/tables/data-table';
+import { columns } from '@/components/tables/users/columns';
+import { useToast } from '@/hooks/use-toast';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function UserList({ result }: { result: any }) {
   const { data, total, pageCount, page, pageSize } = result;
@@ -30,10 +30,10 @@ export default function UserList({ result }: { result: any }) {
       try {
         savingRef.current = true;
 
-        const response = await fetch("/api/users/reorder", {
-          method: "POST",
+        const response = await fetch('/api/users/reorder', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ users: reorderedData }),
         });
@@ -41,26 +41,26 @@ export default function UserList({ result }: { result: any }) {
         const result = await response.json();
 
         if (!result.success) {
-          console.error("Failed to save reordered data:", result.message);
+          console.error('Failed to save reordered data:', result.message);
           toast({
-            title: "Error",
+            title: 'Error',
             description:
-              "Failed to save the new order. Changes may not persist after refresh.",
-            variant: "destructive",
+              'Failed to save the new order. Changes may not persist after refresh.',
+            variant: 'destructive',
           });
         } else {
           toast({
-            title: "Success",
-            description: "User order updated successfully",
+            title: 'Success',
+            description: 'User order updated successfully',
           });
         }
       } catch (error) {
-        console.error("Error saving reordered data:", error);
+        console.error('Error saving reordered data:', error);
         toast({
-          title: "Error",
+          title: 'Error',
           description:
-            "Failed to save the new order. Changes may not persist after refresh.",
-          variant: "destructive",
+            'Failed to save the new order. Changes may not persist after refresh.',
+          variant: 'destructive',
         });
       } finally {
         savingRef.current = false;
@@ -79,24 +79,22 @@ export default function UserList({ result }: { result: any }) {
 
       // Log the reordered data
       console.log(
-        "Reordered users:",
+        'Reordered users:',
         newOrder.map((user: any) => user.id)
       );
     },
     [saveReorderedData]
   );
 
-
   const paginationData = useMemo(
     () => ({
-       total: total,
-       pageCount: pageCount,
-       page: page,
-       pageSize: pageSize
+      total: total,
+      pageCount: pageCount,
+      page: page,
+      pageSize: pageSize,
     }),
     [total, pageCount, page, pageSize]
- )
-
+  );
 
   return (
     <div className="container mx-auto py-10">

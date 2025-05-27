@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import type { Table } from "@tanstack/react-table";
-import { X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import type { Table } from '@tanstack/react-table';
+import { X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
-import { DataTableViewOptions } from "./data-table-view-options";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DataTableFacetedFilter } from './data-table-faceted-filter';
+import { DataTableViewOptions } from './data-table-view-options';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -17,21 +17,21 @@ interface DataTableToolbarProps<TData> {
 
 export function DataTableToolbar<TData>({
   table,
-  searchableFields
+  searchableFields,
 }: DataTableToolbarProps<TData>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState<string>(
-    searchParams.get("search") || ""
+    searchParams.get('search') || ''
   );
-  const statusColumn = table.getColumn("status");
-  const roleColumn = table.getColumn("role");
+  const statusColumn = table.getColumn('status');
+  const roleColumn = table.getColumn('role');
 
   // Initialize filters from URL
   useEffect(() => {
-    const statusParam = searchParams.get("status");
-    const roleParam = searchParams.get("role");
+    const statusParam = searchParams.get('status');
+    const roleParam = searchParams.get('role');
 
     if (statusColumn && statusParam) {
       statusColumn.setFilterValue([statusParam]);
@@ -52,14 +52,14 @@ export function DataTableToolbar<TData>({
     const statusFilter = statusColumn?.getFilterValue() as string[] | undefined;
     const roleFilter = roleColumn?.getFilterValue() as string[] | undefined;
 
-    if (searchTerm) params.set("search", searchTerm);
-    else params.delete("search");
+    if (searchTerm) params.set('search', searchTerm);
+    else params.delete('search');
 
-    if (statusFilter?.[0]) params.set("status", statusFilter[0]);
-    else params.delete("status");
+    if (statusFilter?.[0]) params.set('status', statusFilter[0]);
+    else params.delete('status');
 
-    if (roleFilter?.[0]) params.set("role", roleFilter[0]);
-    else params.delete("role");
+    if (roleFilter?.[0]) params.set('role', roleFilter[0]);
+    else params.delete('role');
 
     updateURLParams(params);
   }, [
@@ -86,8 +86,8 @@ export function DataTableToolbar<TData>({
             column={statusColumn}
             title="Status"
             options={[
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
             ]}
           />
         )}
@@ -96,9 +96,9 @@ export function DataTableToolbar<TData>({
             column={roleColumn}
             title="Role"
             options={[
-              { label: "Admin", value: "admin" },
-              { label: "User", value: "user" },
-              { label: "Manager", value: "manager" },
+              { label: 'Admin', value: 'admin' },
+              { label: 'User', value: 'user' },
+              { label: 'Manager', value: 'manager' },
             ]}
           />
         )}
@@ -106,7 +106,7 @@ export function DataTableToolbar<TData>({
           <Button
             variant="ghost"
             onClick={() => {
-              setSearchTerm("");
+              setSearchTerm('');
               statusColumn?.setFilterValue(undefined);
               roleColumn?.setFilterValue(undefined);
               table.resetColumnFilters();

@@ -1,91 +1,97 @@
-"use client"
+'use client';
 
-import { DataTable } from "@/components/tables/data-table"
-import { columns } from "@/components/tables/users/columns"
-import { useToast } from "@/hooks/use-toast"
-import { saveUserOrder } from "@/lib/actions/user"
-import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { Button } from "../ui/button"
+import { DataTable } from '@/components/tables/data-table';
+import { columns } from '@/components/tables/users/columns';
+import { useToast } from '@/hooks/use-toast';
+import { saveUserOrder } from '@/lib/actions/user';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { Button } from '../ui/button';
 
 export default function UserList({ result }: { result: any }) {
-  const { data, total, pageCount, page, pageSize } = result
-  const { toast } = useToast()
+  const { data, total, pageCount, page, pageSize } = result;
+  const { toast } = useToast();
 
-  const [userData, setUserData] = useState(data || [])
-  const [isLoading, setIsLoading] = useState(false)
-  const savingRef = useRef(false)
-  const [isPending, startTransition] = useTransition()
+  const [userData, setUserData] = useState(data || []);
+  const [isLoading, setIsLoading] = useState(false);
+  const savingRef = useRef(false);
+  const [isPending, startTransition] = useTransition();
 
   // Define searchable fields for the user table
-  const searchableFields = ["name", "email", "id", "role", "status"]
+  const searchableFields = ['name', 'email', 'id', 'role', 'status'];
 
   useEffect(() => {
-    if (!savingRef.current && JSON.stringify(data) !== JSON.stringify(userData)) {
-      setUserData(data)
+    if (
+      !savingRef.current &&
+      JSON.stringify(data) !== JSON.stringify(userData)
+    ) {
+      setUserData(data);
     }
-  }, [data, userData])
+  }, [data, userData]);
 
   const saveReorderedData = useCallback(
     async (reorderedData: any[]) => {
       try {
-        savingRef.current = true
+        savingRef.current = true;
 
-        const result = await saveUserOrder(reorderedData)
+        const result = await saveUserOrder(reorderedData);
 
         if (!result.success) {
           toast({
-            title: "Error",
-            description: result.message || "Failed to save the new order.",
-            variant: "destructive",
-          })
+            title: 'Error',
+            description: result.message || 'Failed to save the new order.',
+            variant: 'destructive',
+          });
         } else {
           toast({
-            title: "Success",
+            title: 'Success',
             description: result.message,
-          })
+          });
         }
       } catch (error) {
-        console.error("Error saving reordered data:", error)
+        console.error('Error saving reordered data:', error);
         toast({
-          title: "Error",
-          description: "Failed to save the new order. Changes may not persist after refresh.",
-          variant: "destructive",
-        })
+          title: 'Error',
+          description:
+            'Failed to save the new order. Changes may not persist after refresh.',
+          variant: 'destructive',
+        });
       } finally {
-        savingRef.current = false
+        savingRef.current = false;
       }
     },
-    [toast],
-  )
+    [toast]
+  );
 
   const handleDragEnd = useCallback(
     (newOrder: typeof data) => {
-      setUserData(newOrder)
+      setUserData(newOrder);
       // Use startTransition for non-urgent updates
       startTransition(() => {
-        saveReorderedData(newOrder)
-      })
+        saveReorderedData(newOrder);
+      });
       console.log(
-        "Reordered users:",
-        newOrder.map((user: any) => user.id),
-      )
+        'Reordered users:',
+        newOrder.map((user: any) => user.id)
+      );
     },
-    [saveReorderedData],
-  )
+    [saveReorderedData]
+  );
 
   // Simulate loading for demonstration purposes
   const refreshData = useCallback(() => {
-    setIsLoading(true)
+    setIsLoading(true);
     setTimeout(() => {
-      setIsLoading(false)
-    }, 2000)
-  }, [])
+      setIsLoading(false);
+    }, 2000);
+  }, []);
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Users Management</h1>
-        <Button  variant={'default'} size={'sm'} onClick={() => refreshData()}>Refresh</Button>
+        <Button variant={'default'} size={'sm'} onClick={() => refreshData()}>
+          Refresh
+        </Button>
       </div>
       <div className="border rounded-lg p-4 bg-card">
         <DataTable
@@ -104,5 +110,5 @@ export default function UserList({ result }: { result: any }) {
         />
       </div>
     </div>
-  )
+  );
 }

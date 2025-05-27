@@ -1,17 +1,18 @@
-import type React from "react";
-import type { Metadata } from "next";
-import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import type React from 'react';
+import type { Metadata } from 'next';
+import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
+import Providers from '@/components/providers';
 
 export const metadata: Metadata = {
-  title: "Data Table",
-  description: "Data table created with tanstack table and shadcn",
+  title: 'Data Table',
+  description: 'Data table created with tanstack table and shadcn',
   authors: [
     {
-      name: "Khalid",
+      name: 'Khalid',
     },
   ],
-  generator: "v0.dev",
+  generator: 'v0.dev',
 };
 
 export default function RootLayout({
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>
