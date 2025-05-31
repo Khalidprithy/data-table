@@ -33,18 +33,14 @@ export const columns: ColumnDef<Product>[] = [
   },
   {
     accessorKey: 'title',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Title" />
-    ),
+    header: 'Title',
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue('title')}</div>
     ),
   },
   {
     accessorKey: 'category',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Category" />
-    ),
+    header: 'Category',
     cell: ({ row }) => <div>{row.getValue('category')}</div>,
   },
   {
@@ -90,13 +86,13 @@ export const columns: ColumnDef<Product>[] = [
     },
   },
   {
-    accessorKey: 'meta.createdAt',
+    accessorKey: 'Created At',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
     ),
     cell: ({ row }) => {
       const date = new Date(row.original.meta.createdAt);
-      return <div>{date.toLocaleDateString()}</div>;
+      return <div>{date.toLocaleDateString('en-US')}</div>;
     },
   },
   {

@@ -12,12 +12,10 @@ import { DataTableViewOptions } from './data-table-view-options';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  searchableFields?: string[];
 }
 
 export function DataTableToolbar<TData>({
   table,
-  searchableFields,
 }: DataTableToolbarProps<TData>) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,7 +77,7 @@ export function DataTableToolbar<TData>({
           placeholder="Search..."
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-10 max-w-sm"
         />
         {statusColumn && (
           <DataTableFacetedFilter
